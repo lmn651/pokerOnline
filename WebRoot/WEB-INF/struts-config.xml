@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.3//EN" "http://struts.apache.org/dtds/struts-config_1_3.dtd">
+
+<struts-config>
+  <form-beans >
+    <form-bean name="userForm" type="com.hks.struts.form.UserForm" />
+
+  </form-beans>
+
+  <global-exceptions />
+  <global-forwards />
+  <action-mappings >
+    <action
+      attribute="userForm"
+      input="/login.jsp"
+      name="userForm"
+      path="/login"
+      scope="request"
+      type="com.hks.struts.action.LoginAction"
+      validate="false"
+      cancellable="true" >
+      <forward name="err" path="/err.jsp" />
+      <forward name="loginok" path="/MainFram.jsp" />
+      
+    </action>
+    <action
+      input="/MainFram.jsp"
+      parameter="flag"
+      path="/faPai"
+      type="com.hks.struts.action.FaPaiAction"
+      validate="false"
+      cancellable="true">
+      <forward name="ok" path="/readyGmae.jsp" />
+      <forward name="game" path="/game.do" />
+      <forward name="fapai" path="/faPai.jsp" />
+      
+    </action>
+    <action
+      parameter="flag"
+      path="/game"
+      type="com.hks.struts.action.GameAction"
+      validate="false"
+      cancellable="true" >
+      <forward name="fapai" path="/faPai.jsp" />
+    </action>
+    <action
+      input="/faPai.jsp"
+      path="/paiChuLi"
+      type="com.hks.struts.action.PaiChuLiAction"
+      validate="false"
+      cancellable="true" />
+    <action
+      input="/faPai.jsp"
+      path="/refresh"
+      type="com.hks.struts.action.RefreshAction"
+      validate="false"
+      cancellable="true" />
+    <action
+      input="/faPai.jsp"
+      path="/paiAct"
+      type="com.hks.struts.action.PaiActAction"
+      validate="false"
+      cancellable="true" />
+    <action
+      input="/faPai.jsp"
+      parameter="flag"
+      path="/shouPai"
+      type="com.hks.struts.action.ShouPaiAction"
+      validate="false"
+      cancellable="true" />
+
+
+
+
+  </action-mappings>
+
+  <message-resources parameter="com.hks.struts.ApplicationResources" />
+</struts-config>
+

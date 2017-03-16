@@ -1,0 +1,53 @@
+.anniu{
+	width: 70px;
+	height: 30px;
+	border-radius: 40%;
+	background-color: navy;
+	color: white;
+	font-size: 16px;
+	opacity: 0.5;	
+	margin-left:25px;
+	}
+	
+.paizhuo{
+	position:absolute;
+	left:15%;
+	top:150px;
+	border:1px solid red;
+	height:280px;
+	width:850px;
+}
+
+.quyu{
+	margin-top: 5px; 
+	width: 280px; 
+	height: 260px; 
+	border: 1px solid; 
+	float:left;
+}
+ <!--提示轮到谁的图片-->
+.zhizhen{
+	position:absolute;  
+	width: 60px;
+	height: 20px;
+}
+
+
+<!-- 存放左侧玩家的手牌数的div-->
+.zuoPaiShu{
+	border:1px solid red;
+	width:100px;
+	height:100px;
+	position:absolute; 
+	top:50px; 
+	left:100px;
+}
+
+.youPaiShu{
+	border:1px solid;
+	width:100px;
+	height:100px;
+	position:absolute; 
+	top:50px; 
+	left:1120px;
+}
