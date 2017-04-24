@@ -42,6 +42,14 @@ public class LoginAction extends Action {
 	 */
 	public ActionForward execute(ActionMapping mapping, ActionForm form,
 			HttpServletRequest request, HttpServletResponse response) {
+		User u = (User) request.getSession().getAttribute("user");
+		if(u != null){
+			//清除该用户的游戏信息
+			u.setFlag("a");
+			u.deskNo = -1;
+			u.weizhi = -1;
+			return mapping.findForward("loginok");
+		}
 		UserForm userForm = (UserForm) form;// TODO Auto-generated method stub
 			
 		String name = userForm.getName();

@@ -20,8 +20,9 @@
 <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
 <meta http-equiv="description" content="This is my page">
 <link rel="stylesheet" type="text/css" href="css/faPai.css">
-<script src="js/jquery-3.1.1.min.js" type="text/javascript"
-	charset="utf-8"></script>
+<link rel="stylesheet" href="css/bootstrap.min.css" />
+<script type="text/javascript" src="js/jquery-3.1.1.min.js" charset="utf-8"></script>
+<script type="text/javascript" src="js/bootstrap.min.js" ></script>
 <script src="js/chuPai.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
@@ -39,21 +40,33 @@
 			<img src="images/poke/bg.png" name="dipai">
 		</div>
 	</div>
+	<!-- 存放玩家角色的标志 -->
+	<div style="position:absolute; left:90px; top:100px;" name="role${(weizhi+3-1)%3}">
+	
+	</div>
+	<div style="position:absolute; left:1130px; top:100px;" name="role${(weizhi+1)%3}">
+	
+	</div>
+	<div style="position:absolute; left:450px; top:500px;" name="role${weizhi}">
+	
+	</div>
+	
 	<!-- 将牌桌分为三个区域[left,right,middle] -->
 	<div class="paizhuo">
 		<div name="location${(weizhi+3-1)%3 }" class="quyu">
-<!-- 			<img name="zhizhen${(weizhi+3-1)%3 }" src="images/other/zhizhen.jpg" class="zhizhen"/> -->
 		</div>
-		<div name="location${weizhi }" class="quyu">
-<!-- 			<img name="zhizhen${weizhi }" src="images/other/zhizhen.jpg" class="zhizhen"/> -->
+		<div name="location${weizhi}" class="quyu">
 		</div>
 		<div name="location${(weizhi+1)%3 }" class="quyu">
-<!-- 			<img name="zhizhen${(weizhi+1)%3 }" src="images/other/zhizhen.jpg" class="zhizhen" /> -->
 		</div>
 	</div>
 	<!-- 存放隐藏的牌路径 -->
 	<c:forEach items="${diPaiList }" var="path" varStatus="i">
 	<input type="hidden" name="dipai${i.count }src" value="${path }"/>
+	</c:forEach>
+	<!-- 存放三个玩家的名字 -->
+	<c:forEach items="${names}" var="n" varStatus="i">
+		<input type="hidden" name="uname${i.count-1}" value="${n}"/>
 	</c:forEach>
 			
 	<div style="position:absolute; left: 550px; top: 450px;">
@@ -64,10 +77,6 @@
 	<!-- 当前玩家的位置 -->
 	<input type="hidden" name="weizhi" value="${weizhi }"/>
 	
-	<%-- 隐藏的玩家的牌数用于显示背景牌 --%>	
-<!-- 	<c:forEach items="${paiShu }" var="n" varStatus="i"> -->
-<!-- 		<input type="hidden" value="${n }" name="paiShu${i.count }"/> -->
-<!-- 	</c:forEach> -->
 <%--存放左侧玩家的手牌数 --%>
 	<div class="zuoPaiShu">
 	<input type="text" value="50"/>
@@ -87,13 +96,40 @@
 	
 	</div>
 	
+	
+	<%--模态框 --%>
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" 
+		   aria-labelledby="myModalLabel" aria-hidden="true">
+		   <div class="modal-dialog">
+		      <div class="modal-content">
+		         <div class="modal-header" style="background-color: rgba(0,0,0,0.1)">
+		            <button type="button" class="close" data-dismiss="modal" 
+		               aria-hidden="true">×
+		            </button>
+		            <h4 class="modal-title" id="myModalLabel">
+		              	标题
+		            </h4>
+		         </div>
+		         <div class="modal-body text-center" id="modalBody">
+		           	是否确认提交?
+		         </div>
+		         <div class="modal-footer" id="modalFooter2">
+		            <button type='button' class='btn btn-default' data-dismiss='modal'>关闭</button>
+		         </div>
+		      </div>
+		   </div>
+		</div>
 </body>
 
 <script type="text/javascript">
 	//记录当前的轮数
-	count=0;
+	count = 0;
 	//记录当前有几个人不要,有一个人不要buyao就加1
-	buyao=0;
+	buyao = 0;
+	//记录当前牌局的状态(0为抢地主状态,1为出牌状态,2为结束状态)
+	state = 0;
+	//地主的位置
+	var dizhuweizhi = "";
 	//牌起立的状态为true
 	var paiState = false;
 	//对牌局进行初始化
@@ -101,14 +137,10 @@
 	changedBeiPai(17,17);
 	//每当牌数发生变化时执行这个函数,只更新手牌
 	function changedShouPai() {
-		$.post("<%=request.getContextPath()%>/shouPai.do",function(msg){
-			//得到从服务器session中传回来的牌,左边的牌数在最前面,右边的牌数在最后面
+		$.post("<%=request.getContextPath()%>/shouPai.do?flag=shouPai",function(msg){
 			//轮盘数也要传回来
-			var shouPai=msg.split("link");
-			//var zuoPaiShu=shouPai[0];
-			//var youPaiShu=shouPai[shouPai.length-1];
+			var shouPai = msg.split("link");
 			$("div[name='shouPai']").html("");
-			//var shouPai="";
 			for(var i=0;i<shouPai.length-1;i++){
 				$("div[name='shouPai']").append("<img src='"+shouPai[i]+"' onclick='xuanZhong(this)' name='shouPai' style='position:absolute; top:500px; left:500px;'/>");
 			}	
@@ -162,11 +194,9 @@
 		for (var i = 0; i < ims.length; i++) {
 			if (ims[i].style.top == "480px") {
 				paiState = true;
-				//console.log("起立");
 				return;
 			}
 			paiState = false;
-			//console.log("左下");
 		}
 	}, 100);
 	
@@ -182,6 +212,13 @@
 	$("input[name='qiang0']").show();
 
 	function panDuanLunPan() {
+		if(state == "1"){
+			console.log(dizhuweizhi);
+			//根据地主的位置将地主的图标画在玩家旁边
+			var str = "<font color='red'>地主</font>";
+			$("div[name=role"+dizhuweizhi+"]").html(str);
+			//$("div[name='role"+dizhuweizhi+"']").append("<font color='red'>地主</font>");
+		}
 		var a=count%3;	
 		if(count<3){
 			$("input").hide();
@@ -199,11 +236,11 @@
 	}
 	
  	function showDiPai(){
- 		var ims=$("img[name='dipai']")
-			$(ims).each(function(index,element){
-				src=$("input[name='dipai"+(index+1)+"src']").val();
-				$(element).prop("src",src);
-			})
+ 		var ims = $("img[name='dipai']");
+		$(ims).each(function(index,element){
+			src = $("input[name='dipai"+(index+1)+"src']").val();
+			$(element).prop("src",src);
+		})
  	}
  
 	function chupai(eventObj) {
@@ -213,7 +250,10 @@
 		var weizhi=$("input[name='weizhi']").val();
 		//拼当前起立的牌的路径
 		if (eventObj.value == "抢地主") {
-			buyao=2;
+			dizhuweizhi = $("input[name='weizhi']").val();
+			buyao = 2;
+			//表示进入游戏出牌状态
+			state = 1;
 			//lable1代表抢地主
 			paiPath="label1";
 			//根据当前count对3取余的值可判断是哪个玩家抢的地主
@@ -223,12 +263,12 @@
 			var shoupai=weizhi+"link";
 			//展示底牌,并分给地主
 			showDiPai();
-			var ims=$("img[name='shouPai']");
+			var ims = $("img[name='shouPai']");
 			//alert("手牌的数量"+ims.length);
 			$(ims).each(function(index,element){
-				shoupai+=$(element).prop("src")+"link";
+				shoupai += $(element).prop("src")+"link";
 			})
-			var ims=$("img[name='dipai']")
+			var ims = $("img[name='dipai']")
 			//alert("底牌的数量"+ims.length);
 			$(ims).each(function(index,element){
 				shoupai+=$(element).prop("src")+"link";
@@ -242,7 +282,7 @@
 			//label3代表不抢
 			buyao=buyao+1;
 			count=count+1;
-			 paiPath="label3";                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+			paiPath="label3";                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
 		}
 	 	if (paiState && eventObj.value=="出牌") {
 			var ims = $("img[name='shouPai']");
@@ -252,11 +292,11 @@
 				}
 			})
 			//出牌判定
-			if(judge(paiPath)==false){
-				return ;
-			}
-			buyao=0;
-	 		count=count+1;
+ 			if(judge(paiPath)==false){
+ 				return ;
+ 			}
+			buyao = 0;
+	 		count = count+1;
 	 		
 		} else {
 			//没有牌处于起立状态
@@ -264,7 +304,7 @@
 		$.ajax({
 		url:"${pageContext.request.contextPath }/paiChuLi.do",
 		type:"post",
-		data:{weizhi:weizhi,count:count,paiPath:paiPath,buyao:buyao},
+		data:{weizhi:weizhi,count:count,paiPath:paiPath,buyao:buyao,state:state,dizhuweizhi:dizhuweizhi},
 		dataType:"text",
 		success:function(msg){},
 		async:false,
@@ -273,22 +313,19 @@
 		})
 		changedShouPai();
 	}
-	//得到左右两侧的牌数,并显示出来
-// 	function showPaiShu(zuoPaiShu,youPaiShu){
-// 		$("input[name=zuoPaiShu]").val(zuoPaiShu);
-// 		$("input[name=youPaiShu]").val(youPaiShu);
-// 	}
 	//根据传入的牌路径以及牌位置,将牌画到牌桌上
 	function drawPai(jieguo,paiWeiZhi){
 		$("div[name=location"+paiWeiZhi+"]").html("");
-		for (var i = 0; i < jieguo.length - 5; i++) {
+		for (var i = 0; i < jieguo.length - 6; i++) {
 			if (jieguo[i] != null || jieguo[i] != "") {
 				var left = 5 + 15 * i;
 				$("div[name=location"+paiWeiZhi+"]").append("<img src='"+jieguo[i]+"' name='zhuo' style='position:absolute; margin-left:"+left+"px;'/>");
 			}
 		}
 		var zuoweizhi=(parseInt(paiWeiZhi)+3-1)%3;
+		var youweizhi = (parseInt(paiWeiZhi)+1)%3
 		$("div[name=location"+zuoweizhi+"]").html("");
+		$("div[name=location"+youweizhi+"]").html("");
 	}
 	
 	function drawWord(label,paiWeiZhi){
@@ -302,11 +339,60 @@
 		}
 		$("div[name=location"+paiWeiZhi+"]").append("<span>"+label+"</span>");
 		var zuoweizhi=(parseInt(paiWeiZhi)+3-1)%3;
-		//$("div[name=location"+zuoweizhi+"]").html("");
+	}
+	//游戏结束,展示结果
+	function gameOver(){
+		//隐藏所有按钮
+		$("input").hide();
+		//展示所有玩家的手牌
+		$.post("<%=request.getContextPath()%>/shouPai.do?flag=showAllPai",function(msg){
+			//以,分左右两个玩家的手牌
+			var shouPais = msg.split(",");
+			var zuoPais = shouPais[0];
+			var youPais = shouPais[1];
+			var zuo = zuoPais.split("link");
+			var you = youPais.split("link");
+			//左面玩家的手牌
+			$("div[name='zuoBei']").html("");
+			var str = "";
+			for(var i = 0;i < zuo.length; i++){
+				var top=150+i*20;
+				//str = "<img src='"+zuo[i]+"' name='youbei' style='position:absolute; top:"+top+"px; left:100px;'/>";
+				$("div[name='zuoBei']").append("<img src='"+zuo[i]+"' name='youbei' style='position:absolute; top:"+top+"px; left:100px;'/>")
+			}
+			//$("div[name='zuoBei']").html(str);
+			//右面玩家的手牌
+			$("div[name='youBei']").html("");
+			str = "";
+			for(var i = 0;i < you.length; i++){
+				var top=150+i*20;
+				//str = "<img src='"+you[i]+"' name='youbei' style='position:absolute; top:"+top+"px; left:1120px;'/>";
+				$("div[name='youBei']").append("<img src='"+you[i]+"' name='youbei' style='position:absolute; top:"+top+"px; left:1120px;'/>");
+			}
+			//$("div[name='youBei']").html(str);
+		},"text");
+		bigModal();
+	}
+	//显示模态框
+	function bigModal(){
+		$("#myModalLabel").html("游戏结束,地主获胜");
+		//$(".modal-dialog").addClass("modal-lg");
+		$("#modalBody").html("地主获胜");
+		$("#modalFooter2").html("<button type='button' class='btn btn-primary' data-dismiss='modal' onclick='restart()'>重新开始</button><button type='button' class='btn btn-default' data-dismiss='modal' onclick='exit()'>退出</button>");
+		$("#myModal").modal('show');
+		//关闭模态框  $("#myModal").modal('hide');
+	}
+	//模态框点击重新开始
+	function restart(){
+		 $("#myModal").modal("hide");
+	}
+	//模态框点击退出
+	function exit(){
+		location.href = "<%=request.getContextPath()%>/login.do";
 	}
 	
 	 //在牌桌上显示已出的牌
-	window.setInterval(
+	var dingshi = window.setInterval(
 		function() {
 			var zuoPaiShu="";
 			var youPaiShu="";
@@ -324,47 +410,54 @@
 				}else{
 					jieguo = jieguo.split("link");
 					//没有牌用户也没有点击按钮的情况下
-					if(jieguo.length==1){
-						count=parseInt(jieguo);
+					if(jieguo.length == 1){
+						state = parseInt(jieguo);
+					}else if(jieguo.length == 2){
+						count=parseInt(jieguo[0]);
+						dizhuweizhi = parseInt(jieguo[1]);
 					}
 					//没有出牌的情况下传回来的有countlinkpaiPath(label)linkpaiWeiZhilinkbuyao,所以split的结果的length为4
-					else if (jieguo.length == 4) {
-						count = parseInt(jieguo[0]);		
-						label = jieguo[1];
-						paiWeiZhi= parseInt(jieguo[2]);
-						buyao=parseInt(jieguo[3]);		
+					else if (jieguo.length == 5) {
+						count = parseInt(jieguo[0]);
+						dizhuweizhi = parseInt(jieguo[1]);		
+						label = jieguo[2];
+						paiWeiZhi = parseInt(jieguo[3]);
+						buyao = parseInt(jieguo[4]);		
 						//在牌桌上根据用户的操作写文字
 						drawWord(label,paiWeiZhi);		
-						}
+					}else {
 						//出牌的情况,则传buyao变量
-					else {
 						//根据paiWeiZhi中的值[0,1,2]将牌显示在不同的位置
-						buyao=parseInt(jieguo[jieguo.length-1]);
-						paiWeiZhi=jieguo[jieguo.length-2];
-						youPaiShu = parseInt(jieguo[jieguo.length - 3]);
-						zuoPaiShu = parseInt(jieguo[jieguo.length - 4]);
-						count = parseInt(jieguo[jieguo.length - 5]);
-						//$(".paizhuo").html("");
+						state = parseInt(jieguo[jieguo.length-1]);
+						buyao = parseInt(jieguo[jieguo.length-2]);
+						paiWeiZhi = jieguo[jieguo.length-3];
+						youPaiShu = parseInt(jieguo[jieguo.length - 4]);
+						zuoPaiShu = parseInt(jieguo[jieguo.length - 5]);
+						count = parseInt(jieguo[jieguo.length - 6]);
 						//根据传入的牌路径数组以及牌的位置,出牌
 						drawPai(jieguo,paiWeiZhi);
 						//更新两侧玩家的手牌数
 						changedBeiPai(zuoPaiShu,youPaiShu);
-						}
+					}
 					if(count>=3){
 						showDiPai();
 					}
 					panDuanLunPan();
-// 					if(zuoPaiShu!=""&&youPaiShu!=""){
-//						把左右两个玩家的牌数显示到两侧
-// 						showPaiShu(zuoPaiShu,youPaiShu);
-// 					}
+					//判断当前游戏状态
+					if(state == 2){
+						qingchu();
+						gameOver();
+					}
 				}
 			},
 			async:false,
 			error:function(){},
 			cache:false
 				})
-		}, 100) 
-		
+		}, 100)
+	//清除取数据定时器
+	function qingchu(){
+		window.clearInterval(dingshi);
+	}	
 </script>
 </html>

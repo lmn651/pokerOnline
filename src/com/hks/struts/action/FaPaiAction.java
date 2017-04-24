@@ -4,9 +4,8 @@
  */
 package com.hks.struts.action;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,7 +15,6 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.actions.DispatchAction;
 
-import com.han.domain.Pai;
 import com.han.domain.User;
 import com.han.service.UserService;
 
@@ -40,16 +38,17 @@ public class FaPaiAction extends DispatchAction {
 	 * @param request
 	 * @param response
 	 * @return ActionForward
+	 * @throws IOException 
 	 */
 
 	public ActionForward execute(ActionMapping mapping, ActionForm form,
-			HttpServletRequest request, HttpServletResponse response) {
+			HttpServletRequest request, HttpServletResponse response) throws IOException {
 		// TODO Auto-generated method stub
 		//进入此控制器说明用户点击准备
 		// 得到当前已准备用户
 		User user = (User) request.getSession().getAttribute("user");
 		//如果用户的flag是c  则证明是在游戏中
-		if("c".equals(user.getFlag())){
+		if("c".equals(user.getFlag()) || user.preweizhi != -1){
 			return mapping.findForward("game");
 		}
 		user.setFlag("b");
@@ -61,16 +60,22 @@ public class FaPaiAction extends DispatchAction {
 		userList.add(user);
 		this.getServlet().getServletContext()
 				.setAttribute("userList", userList);
-		//找到当前准备好的三个人(即状态为b的人,状态为c表示在游戏中),并为这三个人分配位置
-		User[] preUser=UserService.checkDesk(userList);
-		//判断当前准备好的用户个数且当前用户数组上有此用户
-		if(preUser!=null&&UserService.checkUserOnPredesk(preUser, user)){
-			request.setAttribute("preUser", preUser);
-			return mapping.findForward("game");
-		}else{
-			return  mapping.findForward("ok");
-		}
 		
-
+		if(userList.size() !=0 && userList.size()%3 == 0){
+			ArrayList<User[]> preList = (ArrayList<User[]>) request.getServletContext().getAttribute("preList");
+			if(preList == null){
+				preList = new ArrayList<User[]>();
+			}
+			int preweizhi = preList.size();
+			//找到当前准备好的三个人,并为这三个人分配位置,预位置
+			User[] preUser = UserService.checkDesk(userList,preweizhi);
+			preList.add(preweizhi, preUser);
+			request.getServletContext().setAttribute("preList", preList);
+			//判断当前准备好的用户个数且当前用户数组上有此用户
+			if(preUser != null && UserService.checkUserOnPredesk(preUser, user)){
+				return mapping.findForward("game");
+			}
+		}
+		return mapping.findForward("ok");
 	}
 }

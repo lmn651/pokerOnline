@@ -30,14 +30,16 @@ public class UserService {
 	}
 	
 	//判断是否有三个人同时准备,并为这三个人分配位置,返回这三个人,否则返回null
-	public static User[] checkDesk(ArrayList<User> list){
-		User user=null;
-		int count=0;
+	public static User[] checkDesk(ArrayList<User> list, int preweizhi){
+		User user = null;
+		int count = 0;
 		User[] users=new User[3];
 		for (int i = 0; i < list.size(); i++) {
-			user=list.get(i);
-			if(user.getFlag().equals("b")){
-				users[count]=user;
+			user = list.get(i);
+//			user.setFlag("b");
+			if("b".equals(user.getFlag())){
+				user.preweizhi = preweizhi;
+				users[count] = user;
 				count++;
 				if(count==3){
 					return users;
@@ -83,6 +85,16 @@ public class UserService {
 		for (int i = 0; i < users.length; i++) {
 			users[i].deskNo=deskNo;
 		}
+	}
+	
+	//得到玩家的名字数组
+	public static String[] getNames(User[] preUser){
+		String[] names = new String[3];
+		for (int i = 0; i < preUser.length; i++) {
+			User u = preUser[i];
+			names[i] = u.getName();
+		}
+		return names;
 	}
 	
 }

@@ -18,7 +18,7 @@
   
   <body background="images/bg.jpg">
     <div class="title">
-    <h3 class="font1">欢迎来到J1612扑克世界</h3>
+    <h3 class="font1">欢迎来到晗哥扑克世界</h3>
     </div>
     <form action="/pokerOnline/faPai.do">
     <input type="submit" value="准备"/>

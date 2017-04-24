@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,6 +19,7 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.actions.DispatchAction;
 
+import com.han.domain.Desk;
 import com.han.domain.User;
 
 /** 
@@ -41,27 +43,55 @@ public class ShouPaiAction extends DispatchAction {
 	 * @return ActionForward
 	 * @throws IOException 
 	 */
-	public ActionForward execute(ActionMapping mapping, ActionForm form,
+	public ActionForward shouPai(ActionMapping mapping, ActionForm form,
 			HttpServletRequest request, HttpServletResponse response) throws IOException {
 		// TODO Auto-generated method stub
 		//得到当前用户的手牌list
 		PrintWriter out = response.getWriter();
 		//得到当前的用户
 		User user=(User) request.getSession().getAttribute("user");
-		LinkedList<String> pais = (LinkedList<String>) request.getSession().getAttribute("paisList");
+		//LinkedList<String> pais = (LinkedList<String>) request.getSession().getAttribute("paisList");
+		List<Desk> deskList = (List<Desk>) request.getServletContext().getAttribute("deskList");
+		Desk desk = deskList.get(user.deskNo);
+		LinkedList<String> pais = desk.pais[user.weizhi];
 		//存储当前的牌局信息[防止用户刷新]
 		//先得到messageList
-		ArrayList<HashMap<String,String>> messageList =(ArrayList<HashMap<String, String>>) request.getServletContext().getAttribute("messageList");
+		ArrayList<HashMap<String,String>> messageList = (ArrayList<HashMap<String, String>>) request.getServletContext().getAttribute("messageList");
 		HashMap<String, String> messageMap = messageList.get(user.deskNo);
 		//清空map中的标志,允许该玩家去refreshAction中取数据
 		messageMap.remove(user.weizhi+"");
-		String str="";
+		String str = "";
 		for (int i = 0; i < pais.size(); i++) {
-			str+=pais.get(i)+"link";
+			str += pais.get(i) +"link";
 		}
 		out.print(str);
 		out.close();
 		
 		return null;
+	}
+	
+	//游戏结束展示所有玩家的手牌
+	public ActionForward showAllPai(ActionMapping mapping, ActionForm form,
+			HttpServletRequest request, HttpServletResponse response) throws IOException {
+		PrintWriter out = response.getWriter();
+		User user=(User) request.getSession().getAttribute("user");
+		List<Desk> deskList = (List<Desk>) request.getServletContext().getAttribute("deskList");
+		Desk desk = deskList.get(user.deskNo);
+		LinkedList<String> zuoPais = desk.pais[(user.weizhi+3-1)%3];
+		LinkedList<String> youPais = desk.pais[(user.weizhi+1)%3];
+		StringBuffer sbf = new StringBuffer();
+		for (int i = 0; i < zuoPais.size(); i++) {
+			sbf.append(zuoPais.get(i)+"link");
+		}
+		//以middle,作为左右两个玩家的手牌的分隔符
+		sbf.append(",");
+		for (int i = 0; i < youPais.size(); i++) {
+			sbf.append(youPais.get(i)+"link");
+		}
+		String str = sbf.toString();
+		out.print(str);
+		out.close();
+		return null;
+		
 	}
 }

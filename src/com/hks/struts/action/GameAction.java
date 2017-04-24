@@ -7,6 +7,7 @@ package com.hks.struts.action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -54,13 +55,16 @@ public class GameAction extends DispatchAction {
 		User user = (User) request.getSession().getAttribute("user");
 		//先判断用户是否是在游戏中点击了刷新
 		if("c".equals(user.getFlag())){
-			System.out.println(user.weizhi+"重新刷新了");
+			//System.out.println(user.weizhi+"重新刷新了");
 			return mapping.findForward("fapai");
 		}
 		
-		System.out.println(user.getName()+"进入gameAction"+user.getFlag());
 		// 得到当前已准备好且进入此控制器的三个人
-		User[] preUser = (User[]) request.getAttribute("preUser");
+		ArrayList<User[]> preList = (ArrayList<User[]>) request.getServletContext().getAttribute("preList");
+		User[] preUser = preList.get(user.preweizhi);
+		//得到玩家的名字数组
+		String[] names = UserService.getNames(preUser);
+		request.getSession().setAttribute("names", names);
 		// 首先判断这个数组中是否有玩家已经分配到了桌号
 		if (user.deskNo!=-1) {
 			user.setFlag("c");
@@ -68,11 +72,12 @@ public class GameAction extends DispatchAction {
 					.getAttribute("deskList");
 			Desk desk=deskList.get(user.deskNo);
 			int weizhi=user.weizhi;
+			desk.userOnDesk[weizhi] = user;
 			LinkedList<String> diPaiList = desk.diPaiList;
 			LinkedList<String> paisList = desk.pais[user.weizhi];
 			request.getSession().setAttribute("weizhi", weizhi);
 			request.getSession().setAttribute("diPaiList", diPaiList);
-			request.getSession().setAttribute("paisList", paisList);
+			
 			return mapping.findForward("fapai");
 		}
 		LinkedList<Desk> deskList = (LinkedList<Desk>) request.getServletContext()
@@ -93,8 +98,10 @@ public class GameAction extends DispatchAction {
 		desk.setDeskNo(deskList.size());
 		// 将数组中的玩家分配位置,并把桌号赋给数组中的玩家
 		DeskService.setUserOnDesk(preUser, desk);
-		//为数组中的每隔用户分配位置
+		//为数组中的每个用户分配位置
 		DeskService.setUserPosition(preUser);
+		//根据用户的位置,把用户放在桌上
+		desk.userOnDesk[user.weizhi] = user;
 		// 把该用户的状态置为c,表示在游戏中
 		user.setFlag("c");
 		deskList.add(desk);
@@ -105,17 +112,18 @@ public class GameAction extends DispatchAction {
 			messageList=new ArrayList<HashMap<String,String>>();
 		}
 		HashMap<String,String> map=new HashMap<String, String>();
+		
 		//桌号即为这个map所在的位置
 		messageList.add(desk.getDeskNo(), map);
 		request.getServletContext().setAttribute("messageList", messageList);
 		
-		//为当前玩家准备数据以及底牌
+		//为所有玩家准备数据以及底牌
 		int weizhi=user.weizhi;
 		LinkedList<String> diPaiList = desk.diPaiList;
-		LinkedList<String> paisList = desk.pais[user.weizhi];
+		
 		request.getSession().setAttribute("weizhi", weizhi);
-		request.getSession().setAttribute("diPaiList", diPaiList);
-		request.getSession().setAttribute("paisList", paisList);
+		request.setAttribute("diPaiList", diPaiList);
+
 		int[] paiShu=new int[]{17,17,17};
 		ArrayList<int[]> paiShuList=new ArrayList<int[]>();
 		paiShuList.add(user.deskNo, paiShu);

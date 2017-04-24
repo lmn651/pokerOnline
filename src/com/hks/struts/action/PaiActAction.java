@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,6 +18,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 
+import com.han.domain.Desk;
 import com.han.domain.Pai;
 import com.han.domain.User;
 import com.han.service.PaiService;
@@ -47,6 +49,7 @@ public class PaiActAction extends Action {
 		// TODO Auto-generated method stub
 		//得到地主的手牌及底牌
 		//PrintWriter out = response.getWriter();
+		User user=(User) request.getSession().getAttribute("user");
 		String path=request.getParameter("path");
 		//path的首位是玩家的位置
 		String[] paiPath=path.split("link");
@@ -65,9 +68,12 @@ public class PaiActAction extends Action {
 			paisList.add(paiSrc);
 		}
 		//把牌放到地主的session中,并增加其他两个玩家的背景牌数
-		request.getSession().setAttribute("paisList", paisList);
+		//request.getSession().setAttribute("paisList", paisList);
+		List<Desk> deskList = (List<Desk>) request.getServletContext().getAttribute("deskList");
+		Desk desk = deskList.get(user.deskNo); 
+		desk.pais[weizhi] = paisList;
 		//取出服务器中存储的当前玩家的手牌数
-		User user=(User) request.getSession().getAttribute("user");
+		
 		ArrayList<int[]> paiShuList=(ArrayList<int[]>) request.getServletContext().getAttribute("paiShuList");
 		int[] paiShu=paiShuList.get(user.deskNo);
 		paiShu[weizhi]=paisList.size();

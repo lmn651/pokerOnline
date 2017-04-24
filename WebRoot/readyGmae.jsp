@@ -21,6 +21,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 	<script src="../js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript" src="../js/bootstrap.min.js" ></script>
+	<link rel="stylesheet" href="css/bootstrap.min.css" />
+	<script type="text/javascript" src="js/jquery-3.1.1.min.js" charset="utf-8"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js" ></script>
 
   </head>
   
@@ -33,5 +36,17 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
   </body>
   <script type="text/javascript">
   	
+  	var aa = window.setInterval(function() {
+  		$.post("<%=request.getContextPath()%>/state.do",function(msg){
+  			if(msg == "ok"){
+  				qingchu();
+  				window.setTimeout(location.href = "<%=request.getContextPath()%>/faPai.do");
+  			}
+  		},"text");
+  	}, 3000)  
+  	
+  	function qingchu(){
+  		window.clearInterval(aa);
+  	} 
   </script>
 </html>

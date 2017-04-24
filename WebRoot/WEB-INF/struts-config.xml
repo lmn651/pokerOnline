@@ -18,10 +18,9 @@
       scope="request"
       type="com.hks.struts.action.LoginAction"
       validate="false"
-      cancellable="true" >
+      cancellable="true">
       <forward name="err" path="/err.jsp" />
       <forward name="loginok" path="/MainFram.jsp" />
-      
     </action>
     <action
       input="/MainFram.jsp"
@@ -30,10 +29,9 @@
       type="com.hks.struts.action.FaPaiAction"
       validate="false"
       cancellable="true">
+      <forward name="fapai" path="/faPai.jsp" />
       <forward name="ok" path="/readyGmae.jsp" />
       <forward name="game" path="/game.do" />
-      <forward name="fapai" path="/faPai.jsp" />
-      
     </action>
     <action
       parameter="flag"
@@ -68,6 +66,16 @@
       type="com.hks.struts.action.ShouPaiAction"
       validate="false"
       cancellable="true" />
+    <action
+      parameter="flag"
+      path="/state"
+      type="com.hks.struts.action.StateAction"
+      validate="false"
+      cancellable="true" >
+      <forward name="game" path="/game.do" />
+    </action>
+
+    
 
 
 
